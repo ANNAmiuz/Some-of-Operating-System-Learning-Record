@@ -18,7 +18,6 @@ int main(int argc, char *argv[])
         printf("I'm the Child Process, my pid = %d\n", getpid());
         printf("Child process start to execute test program\n");
         execve(argv[1], NULL, NULL);
-        //execve("./stop", NULL, NULL);
     }
 
     if (waitpid(pid, &status, WUNTRACED) == -1)

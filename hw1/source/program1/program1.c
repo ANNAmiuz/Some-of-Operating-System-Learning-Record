@@ -13,7 +13,8 @@ int main(int argc, char *argv[])
     printf("Process start to fork.\n");
     printf("I'm the Parent Process, my pid = %d\n", getpid());
     /* fork a child process */
-    if (pid = fork() == 0)
+    pid = fork();
+    if (pid == 0)
     {
         printf("I'm the Child Process, my pid = %d\n", getpid());
         printf("Child process start to execute test program\n");

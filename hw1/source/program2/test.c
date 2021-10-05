@@ -7,7 +7,7 @@
 
 
 int main(int argc,char* argv[]){
-	int signum = 15;
+	int signum = 13; //normal = 10
 
 	printf("--------USER PROGRAM--------\n");
 
@@ -77,7 +77,7 @@ int main(int argc,char* argv[]){
 			sleep(5);
 			break;
 		}
-		case 12:
+		case 19:
 		{
 			raise(SIGSTOP);
 			sleep(5);

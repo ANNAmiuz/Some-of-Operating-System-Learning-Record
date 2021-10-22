@@ -8,8 +8,8 @@ import threading
 # the length of logs range from LENGTH_LOWER to LENGTH_UPPER
 
 FROG_SIZE = 60
-LENGTH_LOWER = 200
-LENGTH_UPPER = 300
+LENGTH_LOWER = 150
+LENGTH_UPPER = 200
 OFFSET_UPPER = 200
 OFFSET_LOWER = 50
 LOG_BLANK = 50
@@ -93,11 +93,11 @@ class Frog:
             self.x = 0
 
     def turn_left(self, evt):
-        self.x = -LOG_BLANK + LOG_WIDTH
+        self.x = (-LOG_BLANK + LOG_WIDTH) / 3
         self.y = 0
 
     def turn_right(self, evt):
-        self.x = LOG_BLANK + LOG_WIDTH
+        self.x = (LOG_BLANK + LOG_WIDTH) / 3
         self.y = 0
 
 
@@ -140,6 +140,9 @@ class Log:
         self.canvas_width = self.canvas.winfo_width()  #width of the canvas
         self.hit_bottom = False
 
+    def get_position(self):
+        return [self.pos1[0], self.pos1[2], self.pos2[0], self.pos2[2]]
+
     def draw(self):
         self.canvas.move(self.id1, self.x, self.y)
         self.canvas.move(self.id2, self.x, self.y)
@@ -147,15 +150,15 @@ class Log:
         self.pos2 = self.canvas.coords(self.id2)
         # pos[1] top pos[3] bottom pos[0] left pos[2] right
         if self.pos1[0] >= self.canvas_width:
-            self.canvas.move(self.id1, -self.canvas_width - self.length1 / 2,
+            self.canvas.move(self.id1, -self.canvas_width - self.length1 / 1,
                              0)
         elif self.pos1[2] <= 0:
-            self.canvas.move(self.id1, self.canvas_width + self.length1 / 2, 0)
+            self.canvas.move(self.id1, self.canvas_width + self.length1 / 1, 0)
         if self.pos2[0] >= self.canvas_width:
-            self.canvas.move(self.id2, -self.canvas_width - self.length1 / 2,
+            self.canvas.move(self.id2, -self.canvas_width - self.length2 / 1,
                              0)
         elif self.pos2[2] <= 0:
-            self.canvas.move(self.id2, self.canvas_width + self.length1 / 2, 0)
+            self.canvas.move(self.id2, self.canvas_width + self.length2 / 1, 0)
         self.canvas.after(100, self.draw)
 
 
@@ -247,12 +250,89 @@ def check_status(canvas, log1, log2, log3, log4, log5, log6, log7, log8, log9,
     global running
     while (1):
         frog_pos = frog.get_position()
-        print(frog_pos)
+        log1_pos = log1.get_position()
+        log2_pos = log2.get_position()
+        log3_pos = log3.get_position()
+        log4_pos = log4.get_position()
+        log5_pos = log5.get_position()
+        log6_pos = log6.get_position()
+        log7_pos = log7.get_position()
+        log8_pos = log8.get_position()
+        log9_pos = log9.get_position()
+        if (frog_pos[0] < 0 or frog_pos[0] > SCREEN_LENGTH):
+            print("You lose the game! Get out of the bound!\n")
+            running = False
+            break
         if (frog_pos[1] == -5):
-            #print("\033[H\033[2J")
             print("You win the game!\n")
             running = False
-        time.sleep(0.09)
+            break
+
+        # at the height of the first log ~ ninth log
+        elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) - 5):
+            if not ((frog_pos[0] < log1_pos[1]
+                     and frog_pos[0] > log1_pos[0] - 5) or
+                    (frog_pos[0] < log1_pos[3] and frog_pos[0] > log1_pos[2])):
+                print("You lose the game! Get into the river!\n")
+                running = False
+                break
+        elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 2 - 5):
+            if not ((frog_pos[0] < log2_pos[1]
+                     and frog_pos[0] > log2_pos[0] - 5) or
+                    (frog_pos[0] < log2_pos[3] and frog_pos[0] > log2_pos[2])):
+                print("You lose the game! Get into the river!\n")
+                running = False
+                break
+        elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 3 - 5):
+            if not ((frog_pos[0] < log3_pos[1]
+                     and frog_pos[0] > log3_pos[0] - 5) or
+                    (frog_pos[0] < log3_pos[3] and frog_pos[0] > log3_pos[2])):
+                print("You lose the game! Get into the river!\n")
+                running = False
+                break
+        elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 4 - 5):
+            if not ((frog_pos[0] < log4_pos[1]
+                     and frog_pos[0] > log4_pos[0] - 5) or
+                    (frog_pos[0] < log4_pos[3] and frog_pos[0] > log4_pos[2])):
+                print("You lose the game! Get into the river!\n")
+                running = False
+                break
+        elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 5 - 5):
+            if not ((frog_pos[0] < log5_pos[1]
+                     and frog_pos[0] > log5_pos[0] - 5) or
+                    (frog_pos[0] < log5_pos[3] and frog_pos[0] > log5_pos[2])):
+                print("You lose the game! Get into the river!\n")
+                running = False
+                break
+        elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 6 - 5):
+            if not ((frog_pos[0] < log6_pos[1]
+                     and frog_pos[0] > log6_pos[0] - 5) or
+                    (frog_pos[0] < log6_pos[3] and frog_pos[0] > log6_pos[2])):
+                print("You lose the game! Get into the river!\n")
+                running = False
+                break
+        elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 7 - 5):
+            if not ((frog_pos[0] < log7_pos[1]
+                     and frog_pos[0] > log7_pos[0] - 5) or
+                    (frog_pos[0] < log7_pos[3] and frog_pos[0] > log7_pos[2])):
+                print("You lose the game! Get into the river!\n")
+                running = False
+                break
+        elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 8 - 5):
+            if not ((frog_pos[0] < log8_pos[1]
+                     and frog_pos[0] > log8_pos[0] - 5) or
+                    (frog_pos[0] < log8_pos[3] and frog_pos[0] > log8_pos[2])):
+                print("You lose the game! Get into the river!\n")
+                running = False
+                break
+        elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 9 - 5):
+            if not ((frog_pos[0] < log9_pos[1]
+                     and frog_pos[0] > log9_pos[0] - 5) or
+                    (frog_pos[0] < log9_pos[3] and frog_pos[0] > log9_pos[2])):
+                print("You lose the game! Get into the river!\n")
+                running = False
+                break
+        time.sleep(0.01)
 
 
 # def draw_object(object):

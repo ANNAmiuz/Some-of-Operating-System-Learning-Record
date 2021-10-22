@@ -199,7 +199,7 @@ void *logs_move(void *)
 	int i, j, p1, p2;
 	int left[ROW - 1];
 	// initialize the position of all logs （left end point)
-	for (i = 0; i < ROW; ++i)
+	for (i = 0; i <= ROW; ++i)
 	{
 		left[i] = rand() % (COLUMN + 1);
 	}

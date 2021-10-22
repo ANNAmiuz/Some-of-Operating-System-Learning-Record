@@ -24,7 +24,7 @@ FROG_START = SCREEN_LENGTH - BANK_WIDTH - FROG_SIZE - 5  #585
 hardness = 9
 speed = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 running = True
-
+end = 0 # 1: win 2: lose 3: quit
 
 def create_thread(tar, arg):
     thread = threading.Thread(target=tar, args=arg)
@@ -81,23 +81,34 @@ class Frog:
                 self.x = speed[hardness]
 
     def turn_up(self, evt):
-        pos = self.canvas.coords(self.id)
-        if (pos[1] > BANK_WIDTH / 2):
+        self.pos = self.canvas.coords(self.id)
+        if (self.pos[1] > BANK_WIDTH / 2):
             self.y = -LOG_BLANK - LOG_WIDTH
             self.x = 0
 
     def turn_down(self, evt):
-        pos = self.canvas.coords(self.id)
-        if (pos[1] < FROG_START):
+        self.pos = self.canvas.coords(self.id)
+        if (self.pos[1] < FROG_START):
             self.y = LOG_BLANK + LOG_WIDTH
             self.x = 0
 
     def turn_left(self, evt):
-        self.x = (-LOG_BLANK + LOG_WIDTH) / 3
+        self.pos = self.canvas.coords(self.id)
+        left = ((FROG_START + 10 - self.pos[1]) / (LOG_BLANK + LOG_WIDTH)) % 2
+        if (left == 1):
+            self.x = (-LOG_BLANK - LOG_WIDTH) / 4 - speed[hardness]
+        else:
+            self.x = (-LOG_BLANK - LOG_WIDTH) / 4
         self.y = 0
 
     def turn_right(self, evt):
-        self.x = (LOG_BLANK + LOG_WIDTH) / 3
+        self.pos = self.canvas.coords(self.id)
+        left = ((FROG_START + 10 - self.pos[1]) /
+                    (LOG_BLANK + LOG_WIDTH)) % 2
+        if (left == 1):
+            self.x = (LOG_BLANK + LOG_WIDTH) / 4
+        else:
+            self.x = (LOG_BLANK + LOG_WIDTH) / 4 + speed[hardness]
         self.y = 0
 
 
@@ -179,10 +190,12 @@ t.resizable(0, 0)
 t.wm_attributes("-topmost", 1)
 
 
-def close_win(e):
+def quit_the_game(e):
+    global running
     print("\033[H\033[2J")
     print("You quit the game!\n")
-    t.destroy()
+    t.title("You quit the game! Press ESC / click the X of window / wait 3 seconds to close the window.\n")
+    running = False
 
 
 canvas = Canvas(t,
@@ -190,7 +203,8 @@ canvas = Canvas(t,
                 height=SCREEN_LENGTH,
                 bd=0,
                 highlightthickness=0)
-t.bind('<q>', lambda e: close_win(e))
+t.bind('<q>', lambda e: quit_the_game(e))
+t.bind("<Escape>", lambda x: t.destroy())
 canvas.pack()
 t.update()
 
@@ -248,6 +262,7 @@ frog = Frog(canvas, "green")
 def check_status(canvas, log1, log2, log3, log4, log5, log6, log7, log8, log9,
                  frog):
     global running
+    global end
     while (1):
         frog_pos = frog.get_position()
         log1_pos = log1.get_position()
@@ -260,89 +275,115 @@ def check_status(canvas, log1, log2, log3, log4, log5, log6, log7, log8, log9,
         log8_pos = log8.get_position()
         log9_pos = log9.get_position()
         if (frog_pos[0] < 0 or frog_pos[0] > SCREEN_LENGTH):
+            print("\033[H\033[2J")
             print("You lose the game! Get out of the bound!\n")
+            end = 2
             running = False
             break
         if (frog_pos[1] == -5):
+            print("\033[H\033[2J")
             print("You win the game!\n")
             running = False
+            end = 1
             break
 
         # at the height of the first log ~ ninth log
         elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) - 5):
-            if not ((frog_pos[0] < log1_pos[1]
-                     and frog_pos[0] > log1_pos[0] - 5) or
-                    (frog_pos[0] < log1_pos[3] and frog_pos[0] > log1_pos[2])):
+            if not ((frog_pos[0] < log1_pos[1] - 10
+                     and frog_pos[0] > log1_pos[0] - 35) or
+                    (frog_pos[0] < log1_pos[3] - 10
+                     and frog_pos[0] > log1_pos[2]- 35)):
+                print("\033[H\033[2J")
                 print("You lose the game! Get into the river!\n")
                 running = False
+                end = 2
                 break
         elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 2 - 5):
-            if not ((frog_pos[0] < log2_pos[1]
-                     and frog_pos[0] > log2_pos[0] - 5) or
-                    (frog_pos[0] < log2_pos[3] and frog_pos[0] > log2_pos[2])):
+            if not ((frog_pos[0] < log2_pos[1] - 10
+                     and frog_pos[0] > log2_pos[0] - 35) or
+                    (frog_pos[0] < log2_pos[3] - 10
+                     and frog_pos[0] > log2_pos[2]- 35)):
+                print("\033[H\033[2J")
                 print("You lose the game! Get into the river!\n")
                 running = False
+                end = 2
                 break
         elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 3 - 5):
-            if not ((frog_pos[0] < log3_pos[1]
-                     and frog_pos[0] > log3_pos[0] - 5) or
-                    (frog_pos[0] < log3_pos[3] and frog_pos[0] > log3_pos[2])):
+            if not ((frog_pos[0] < log3_pos[1] - 10
+                     and frog_pos[0] > log3_pos[0] - 35) or
+                    (frog_pos[0] < log3_pos[3] - 10
+                     and frog_pos[0] > log3_pos[2]- 35)):
+                print("\033[H\033[2J")
                 print("You lose the game! Get into the river!\n")
                 running = False
+                end = 2
                 break
         elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 4 - 5):
-            if not ((frog_pos[0] < log4_pos[1]
-                     and frog_pos[0] > log4_pos[0] - 5) or
-                    (frog_pos[0] < log4_pos[3] and frog_pos[0] > log4_pos[2])):
+            if not ((frog_pos[0] < log4_pos[1] - 10
+                     and frog_pos[0] > log4_pos[0] - 35) or
+                    (frog_pos[0] < log4_pos[3] - 10
+                     and frog_pos[0] > log4_pos[2]- 35)):
+                print("\033[H\033[2J")
                 print("You lose the game! Get into the river!\n")
                 running = False
+                end = 2
                 break
         elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 5 - 5):
-            if not ((frog_pos[0] < log5_pos[1]
-                     and frog_pos[0] > log5_pos[0] - 5) or
-                    (frog_pos[0] < log5_pos[3] and frog_pos[0] > log5_pos[2])):
+            if not ((frog_pos[0] < log5_pos[1] - 10
+                     and frog_pos[0] > log5_pos[0] - 35) or
+                    (frog_pos[0] < log5_pos[3] - 10
+                     and frog_pos[0] > log5_pos[2]- 35)):
+                print("\033[H\033[2J")
                 print("You lose the game! Get into the river!\n")
                 running = False
+                end = 2
                 break
         elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 6 - 5):
-            if not ((frog_pos[0] < log6_pos[1]
-                     and frog_pos[0] > log6_pos[0] - 5) or
-                    (frog_pos[0] < log6_pos[3] and frog_pos[0] > log6_pos[2])):
+            if not ((frog_pos[0] < log6_pos[1] - 10
+                     and frog_pos[0] > log6_pos[0] - 35) or
+                    (frog_pos[0] < log6_pos[3] - 10
+                     and frog_pos[0] > log6_pos[2]- 35)):
+                print("\033[H\033[2J")
                 print("You lose the game! Get into the river!\n")
                 running = False
+                end = 2
                 break
         elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 7 - 5):
-            if not ((frog_pos[0] < log7_pos[1]
-                     and frog_pos[0] > log7_pos[0] - 5) or
-                    (frog_pos[0] < log7_pos[3] and frog_pos[0] > log7_pos[2])):
+            if not ((frog_pos[0] < log7_pos[1] - 10
+                     and frog_pos[0] > log7_pos[0] - 35) or
+                    (frog_pos[0] < log7_pos[3] - 10
+                     and frog_pos[0] > log7_pos[2]- 35)):
+                print("\033[H\033[2J")
                 print("You lose the game! Get into the river!\n")
                 running = False
+                end = 2
                 break
         elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 8 - 5):
-            if not ((frog_pos[0] < log8_pos[1]
-                     and frog_pos[0] > log8_pos[0] - 5) or
-                    (frog_pos[0] < log8_pos[3] and frog_pos[0] > log8_pos[2])):
+            if not ((frog_pos[0] < log8_pos[1] - 10
+                     and frog_pos[0] > log8_pos[0] - 35) or
+                    (frog_pos[0] < log8_pos[3] - 10
+                     and frog_pos[0] > log8_pos[2]- 35)):
+                print("\033[H\033[2J")
                 print("You lose the game! Get into the river!\n")
                 running = False
+                end = 2
                 break
         elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 9 - 5):
-            if not ((frog_pos[0] < log9_pos[1]
-                     and frog_pos[0] > log9_pos[0] - 5) or
-                    (frog_pos[0] < log9_pos[3] and frog_pos[0] > log9_pos[2])):
+            if not ((frog_pos[0] < log9_pos[1] - 10
+                     and frog_pos[0] > log9_pos[0] - 35) or
+                    (frog_pos[0] < log9_pos[3] - 10
+                     and frog_pos[0] > log9_pos[2]- 35)):
+                print("\033[H\033[2J")
                 print("You lose the game! Get into the river!\n")
                 running = False
+                end = 2
                 break
-        time.sleep(0.01)
+        time.sleep(0.005)
 
-
-# def draw_object(object):
-#     object.draw()
 
 create_thread(
     check_status,
     (canvas, log1, log2, log3, log4, log5, log6, log7, log8, log9, frog))
-
-# create_thread(draw_object, log1)
 
 log1.draw()
 log2.draw()
@@ -355,13 +396,16 @@ log8.draw()
 log9.draw()
 frog.draw()
 while running:
-    # if ball.hit_bottom ==False:
-    #         ball.draw()
-    #         log.draw()
-    # else:
-    #         break
     t.update_idletasks()
     t.update()
-    time.sleep(0.01)
+    time.sleep(0.005)
+
+if (end == 1):
+    t.title("You win! Press ESC / click the X of window / wait 3 seconds to close the window.\n")
+elif (end == 2):
+    t.title("You lose! Press ESC / click the X of window / wait 3 seconds to close the window.\n")
+t.update_idletasks()
+t.update()
+time.sleep(3)
 t.destroy()
 t.mainloop()

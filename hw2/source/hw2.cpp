@@ -7,13 +7,14 @@
 #include <curses.h>
 #include <termios.h>
 #include <fcntl.h>
+#include <math.h>
 
 #define ROW 10
 #define COLUMN 50
 #define TIME 20000
 #define LOGLEN 20
-#define MODE1x
-#define MODE2
+#define MODE1 // One thread used to update the screen
+#define MODE2x  // Many threads used to update the screen
 
 struct Node
 {
@@ -23,8 +24,12 @@ struct Node
 } frog;
 
 pthread_mutex_t end_mutex, frog_mutex;
+#ifdef MODE2
+pthread_mutex_t clear_mutex;
+#endif
 char map[ROW + 10][COLUMN];
 int end = 0; // quit = 1, win = 2, lose = 3
+bool is_clear = false;
 
 // Determine a keyboard is hit or not. If yes, return 1. If not, return 0.
 int kbhit(void)
@@ -117,10 +122,77 @@ void *check_status(void *)
 			end = 3;
 			pthread_exit(NULL);
 		}
-		usleep(TIME/4);
+		usleep(TIME / 4);
 	}
 	pthread_exit(NULL);
 }
+
+#ifdef MODE1
+void *display_screen(void *)
+{
+	while (!end)
+	{
+		printf("\033[H\033[2J");
+		for (int i = 0; i <= ROW; ++i)
+			puts(map[i]);
+		usleep(TIME / 4);
+	}
+}
+#endif
+
+#ifdef MODE2
+void *display_top(void *)
+{
+	while (!end)
+	{
+		pthread_mutex_lock(&clear_mutex);
+		if (!is_clear)
+		{
+			is_clear = true;
+			printf("\033[H\033[2J");
+		}
+
+		for (int i = 0; i < ceil(((float)ROW - 0) / 3); ++i)
+			puts(map[i]);
+		usleep(TIME / 4);
+		is_clear = false;
+	}
+}
+
+void *display_mid(void *)
+{
+	while (!end)
+	{
+		pthread_mutex_lock(&clear_mutex);
+		if (!is_clear)
+		{
+			is_clear = true;
+			printf("\033[H\033[2J");
+		}
+		for (int i = 0; i < ceil(((float)ROW - 1) / 3); ++i)
+			puts(map[i]);
+		usleep(TIME / 4);
+		is_clear = false;
+	}
+}
+
+void *display_botm(void *)
+{
+	while (!end)
+	{
+		pthread_mutex_lock(&clear_mutex);
+		if (!is_clear)
+		{
+			is_clear = true;
+			printf("\033[H\033[2J");
+		}
+		for (int i = 0; i < ceil(((float)ROW - 0) / 3); ++i)
+			puts(map[i]);
+		usleep(TIME / 4);
+		is_clear = false;
+	}
+}
+#endif
 
 void *logs_move(void *)
 {
@@ -139,40 +211,7 @@ void *logs_move(void *)
 			for (j = 0; j < COLUMN - 1; ++j)
 				map[i][j] = ' ';
 		}
-#ifdef MODE1
-		for (i = 1; i <= ROW; ++i)
-		{
-			p1 = left[i];
-			p2 = p1 + LOGLEN;
-			if (p1 < 0 && p2 > 0)
-				p1 = 0;
-			else if (p1 > 0 && p2 >= COLUMN - 1)
-				p2 = COLUMN - 1;
-			else if (p2 < 0 || p1 >= COLUMN - 1)
-			{
-				p1 = 0;
-				p2 = 0;
-			}
-			for (j = p1; j < p2; ++j)
-			{
-				map[i][j] = '=';
-			}
-			if (i % 2)
-			{
-				left[i]--;
-				if (left[i] == -LOGLEN)
-					left[i] = COLUMN - 1;
-			}
-			else
-			{
-				left[i]++;
-				if (left[i] == COLUMN - 1)
-					left[i] = 0;
-			}
-		}
-#endif
 
-#ifdef MODE2
 		for (i = 1; i <= ROW; ++i)
 		{
 			p1 = left[i];
@@ -209,14 +248,14 @@ void *logs_move(void *)
 					left[i] = 0;
 			}
 		}
-#endif
+
 		for (j = 0; j < COLUMN - 1; ++j)
 			map[ROW][j] = map[0][j] = '|';
 
 		for (j = 0; j < COLUMN - 1; ++j)
 			map[0][j] = map[0][j] = '|';
 
-		// pthread_mutex_lock(&frog_mutex);
+		pthread_mutex_lock(&frog_mutex);
 		map[frog.x][frog.y] = '0';
 		if (frog.x != 0 && frog.x != ROW)
 		{
@@ -225,7 +264,7 @@ void *logs_move(void *)
 			else
 				frog.y++;
 		}
-		// pthread_mutex_unlock(&frog_mutex);
+		pthread_mutex_unlock(&frog_mutex);
 
 		/*  Check keyboard hits, to change frog's position or quit the game. */
 
@@ -234,9 +273,9 @@ void *logs_move(void *)
 		/*  Sleep before the next loop  */
 		usleep(TIME * 10);
 		// Print the map into screen
-		printf("\033[H\033[2J");
-		for (i = 0; i <= ROW; ++i)
-			puts(map[i]);
+		// printf("\033[H\033[2J");
+		// for (i = 0; i <= ROW; ++i)
+		// 	puts(map[i]);
 	}
 	pthread_exit(NULL);
 }
@@ -269,20 +308,44 @@ int main(int argc, char *argv[])
 	// Mutex initialization
 	pthread_mutex_init(&end_mutex, NULL);
 	pthread_mutex_init(&frog_mutex, NULL);
+#ifdef MODE2
+	pthread_mutex_init(&clear_mutex, NULL);
+#endif
 
-	// The first thread control the input status from keyboard, the other control the move
-	pthread_t threads[2];
+// The first thread control the input status from keyboard, the other control the move
+#ifdef MODE1
+	pthread_t threads[3];
+#endif
+#ifdef MODE2
+	pthread_t threads[5];
+#endif
 
 	/*  Create pthreads for wood move and frog control.  */
 	pthread_create(&threads[0], NULL, logs_move, NULL);
 	pthread_create(&threads[1], NULL, check_status, NULL);
+#ifdef MODE1
+	pthread_create(&threads[2], NULL, display_screen, NULL);
+#endif
+#ifdef MODE2
+	pthread_create(&threads[2], NULL, display_top, NULL);
+	pthread_create(&threads[3], NULL, display_mid, NULL);
+	pthread_create(&threads[4], NULL, display_botm, NULL);
+#endif
 
 	/*  Display the output for user: win, lose or quit.  */
 	pthread_join(threads[0], NULL);
 	pthread_join(threads[1], NULL);
+	pthread_join(threads[2], NULL);
+#ifdef MODE2
+	pthread_join(threads[3], NULL);
+	pthread_join(threads[4], NULL);
+#endif
 
 	pthread_mutex_destroy(&end_mutex);
 	pthread_mutex_destroy(&frog_mutex);
+#ifdef MODE2
+	pthread_mutex_destroy(&clear_mutex);
+#endif
 	printf("\033[H\033[2J");
 	if (end == 1)
 		printf("You exit the game.\n");

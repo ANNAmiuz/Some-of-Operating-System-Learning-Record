@@ -268,16 +268,8 @@ void *logs_move(void *)
 		}
 		pthread_mutex_unlock(&frog_mutex);
 
-		/*  Check keyboard hits, to change frog's position or quit the game. */
-
-		/*  Check game's status  */
-
 		/*  Sleep before the next loop  */
 		usleep(TIME * 10);
-		// Print the map into screen
-		// printf("\033[H\033[2J");
-		// for (i = 0; i <= ROW; ++i)
-		// 	puts(map[i]);
 	}
 	pthread_exit(NULL);
 }
@@ -308,7 +300,7 @@ int main(int argc, char *argv[])
 		puts(map[i]);
 
 	// Mutex initialization
-	pthread_mutex_init(&end_mutex, NULL);
+	//pthread_mutex_init(&end_mutex, NULL);
 	pthread_mutex_init(&frog_mutex, NULL);
 #ifdef MODE2
 	pthread_mutex_init(&clear_mutex, NULL);
@@ -343,7 +335,7 @@ int main(int argc, char *argv[])
 	pthread_join(threads[4], NULL);
 #endif
 
-	pthread_mutex_destroy(&end_mutex);
+	//pthread_mutex_destroy(&end_mutex);
 	pthread_mutex_destroy(&frog_mutex);
 #ifdef MODE2
 	pthread_mutex_destroy(&clear_mutex);

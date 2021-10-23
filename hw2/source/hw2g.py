@@ -22,9 +22,9 @@ SCREEN_LENGTH = BANK_WIDTH * BANK_NUM + (LOG_NUM +
 FROG_START = SCREEN_LENGTH - BANK_WIDTH - FROG_SIZE - 5  #585
 
 hardness = 9
-speed = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 running = True
-end = 0 # 1: win 2: lose 3: quit
+end = 0  # 1: win 2: lose 3: quit
+
 
 def create_thread(tar, arg):
     thread = threading.Thread(target=tar, args=arg)
@@ -76,9 +76,9 @@ class Frog:
             left = ((FROG_START + 10 - self.pos[1]) /
                     (LOG_BLANK + LOG_WIDTH)) % 2
             if (left == 1 and self.x == 0):
-                self.x = -speed[hardness]
+                self.x = -hardness * 1.1
             elif (left == 0 and self.x == 0):
-                self.x = speed[hardness]
+                self.x = hardness * 1.1
 
     def turn_up(self, evt):
         self.pos = self.canvas.coords(self.id)
@@ -96,19 +96,18 @@ class Frog:
         self.pos = self.canvas.coords(self.id)
         left = ((FROG_START + 10 - self.pos[1]) / (LOG_BLANK + LOG_WIDTH)) % 2
         if (left == 1):
-            self.x = (-LOG_BLANK - LOG_WIDTH) / 4 - speed[hardness]
+            self.x = (-LOG_BLANK - LOG_WIDTH) / 4 - hardness*1.1
         else:
             self.x = (-LOG_BLANK - LOG_WIDTH) / 4
         self.y = 0
 
     def turn_right(self, evt):
         self.pos = self.canvas.coords(self.id)
-        left = ((FROG_START + 10 - self.pos[1]) /
-                    (LOG_BLANK + LOG_WIDTH)) % 2
+        left = ((FROG_START + 10 - self.pos[1]) / (LOG_BLANK + LOG_WIDTH)) % 2
         if (left == 1):
             self.x = (LOG_BLANK + LOG_WIDTH) / 4
         else:
-            self.x = (LOG_BLANK + LOG_WIDTH) / 4 + speed[hardness]
+            self.x = (LOG_BLANK + LOG_WIDTH) / 4 + hardness*1.1
         self.y = 0
 
 
@@ -122,6 +121,8 @@ class Log:
         self.offset = offset
         self.length1 = length1
         self.length2 = length2
+        # self.speed = speed[hardness]
+        self.left = left
         self.id1 = canvas.create_rectangle(0,
                                            0,
                                            self.length1,
@@ -136,25 +137,30 @@ class Log:
         self.pos1 = [0, 0, 0, 0]
         self.pos2 = [0, 0, 0, 0]
 
-        if (left == 1):
-            self.x = -speed[hardness]  # parallel speed
+        if (self.left == 1):
+            # horizontal speed
+            self.x = -hardness * 1.1
             self.centre2 = self.centre1 + offset + (self.length1 +
                                                     self.length2) * 0.6
             self.canvas.move(self.id2, self.centre2, self.height)
         else:
-            self.x = speed[hardness]
+            self.x = hardness * 1.1
             self.centre2 = self.centre1 - offset - (self.length1 +
                                                     self.length2) * 0.6
             self.canvas.move(self.id2, self.centre2, self.height)
         self.y = 0  # vertical speed
-        self.canvas_height = self.canvas.winfo_height()  #height of the canvas
         self.canvas_width = self.canvas.winfo_width()  #width of the canvas
         self.hit_bottom = False
-
+        
+    # horizontal end point position
     def get_position(self):
         return [self.pos1[0], self.pos1[2], self.pos2[0], self.pos2[2]]
 
     def draw(self):
+        if (self.left == 1):
+            self.x = -hardness * 1.1
+        else:
+            self.x = hardness * 1.1
         self.canvas.move(self.id1, self.x, self.y)
         self.canvas.move(self.id2, self.x, self.y)
         self.pos1 = self.canvas.coords(self.id1)
@@ -192,10 +198,13 @@ t.wm_attributes("-topmost", 1)
 
 def quit_the_game(e):
     global running
-    print("\033[H\033[2J")
-    print("You quit the game!\n")
-    t.title("You quit the game! Press ESC / click the X of window / wait 3 seconds to close the window.\n")
-    running = False
+    if (running):
+        print("\033[H\033[2J")
+        print("You quit the game!\n")
+        t.title(
+            "You quit the game! Wait 5 seconds to close the window.\n"
+        )
+        running = False
 
 
 canvas = Canvas(t,
@@ -204,7 +213,9 @@ canvas = Canvas(t,
                 bd=0,
                 highlightthickness=0)
 t.bind('<q>', lambda e: quit_the_game(e))
-t.bind("<Escape>", lambda x: t.destroy())
+#t.bind("<Escape>", lambda x: t.destroy())
+t.bind('<Escape>', lambda e: quit_the_game(e))
+
 canvas.pack()
 t.update()
 
@@ -258,7 +269,7 @@ log9 = Log(canvas, "green", random.randint(20, SCREEN_LENGTH / 2 - 10),
 
 frog = Frog(canvas, "green")
 
-
+# Catch the current status of the game : win / lose
 def check_status(canvas, log1, log2, log3, log4, log5, log6, log7, log8, log9,
                  frog):
     global running
@@ -274,7 +285,7 @@ def check_status(canvas, log1, log2, log3, log4, log5, log6, log7, log8, log9,
         log7_pos = log7.get_position()
         log8_pos = log8.get_position()
         log9_pos = log9.get_position()
-        if (frog_pos[0] < 0 or frog_pos[0] > SCREEN_LENGTH):
+        if (frog_pos[0] < -20 or frog_pos[0] > SCREEN_LENGTH - 20):
             print("\033[H\033[2J")
             print("You lose the game! Get out of the bound!\n")
             end = 2
@@ -290,9 +301,9 @@ def check_status(canvas, log1, log2, log3, log4, log5, log6, log7, log8, log9,
         # at the height of the first log ~ ninth log
         elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) - 5):
             if not ((frog_pos[0] < log1_pos[1] - 10
-                     and frog_pos[0] > log1_pos[0] - 35) or
+                     and frog_pos[0] > log1_pos[0] - 45) or
                     (frog_pos[0] < log1_pos[3] - 10
-                     and frog_pos[0] > log1_pos[2]- 35)):
+                     and frog_pos[0] > log1_pos[2] - 45)):
                 print("\033[H\033[2J")
                 print("You lose the game! Get into the river!\n")
                 running = False
@@ -300,9 +311,9 @@ def check_status(canvas, log1, log2, log3, log4, log5, log6, log7, log8, log9,
                 break
         elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 2 - 5):
             if not ((frog_pos[0] < log2_pos[1] - 10
-                     and frog_pos[0] > log2_pos[0] - 35) or
+                     and frog_pos[0] > log2_pos[0] - 45) or
                     (frog_pos[0] < log2_pos[3] - 10
-                     and frog_pos[0] > log2_pos[2]- 35)):
+                     and frog_pos[0] > log2_pos[2] - 45)):
                 print("\033[H\033[2J")
                 print("You lose the game! Get into the river!\n")
                 running = False
@@ -310,9 +321,9 @@ def check_status(canvas, log1, log2, log3, log4, log5, log6, log7, log8, log9,
                 break
         elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 3 - 5):
             if not ((frog_pos[0] < log3_pos[1] - 10
-                     and frog_pos[0] > log3_pos[0] - 35) or
+                     and frog_pos[0] > log3_pos[0] - 45) or
                     (frog_pos[0] < log3_pos[3] - 10
-                     and frog_pos[0] > log3_pos[2]- 35)):
+                     and frog_pos[0] > log3_pos[2] - 45)):
                 print("\033[H\033[2J")
                 print("You lose the game! Get into the river!\n")
                 running = False
@@ -320,9 +331,9 @@ def check_status(canvas, log1, log2, log3, log4, log5, log6, log7, log8, log9,
                 break
         elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 4 - 5):
             if not ((frog_pos[0] < log4_pos[1] - 10
-                     and frog_pos[0] > log4_pos[0] - 35) or
+                     and frog_pos[0] > log4_pos[0] - 45) or
                     (frog_pos[0] < log4_pos[3] - 10
-                     and frog_pos[0] > log4_pos[2]- 35)):
+                     and frog_pos[0] > log4_pos[2] - 45)):
                 print("\033[H\033[2J")
                 print("You lose the game! Get into the river!\n")
                 running = False
@@ -330,9 +341,9 @@ def check_status(canvas, log1, log2, log3, log4, log5, log6, log7, log8, log9,
                 break
         elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 5 - 5):
             if not ((frog_pos[0] < log5_pos[1] - 10
-                     and frog_pos[0] > log5_pos[0] - 35) or
+                     and frog_pos[0] > log5_pos[0] - 45) or
                     (frog_pos[0] < log5_pos[3] - 10
-                     and frog_pos[0] > log5_pos[2]- 35)):
+                     and frog_pos[0] > log5_pos[2] - 45)):
                 print("\033[H\033[2J")
                 print("You lose the game! Get into the river!\n")
                 running = False
@@ -340,9 +351,9 @@ def check_status(canvas, log1, log2, log3, log4, log5, log6, log7, log8, log9,
                 break
         elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 6 - 5):
             if not ((frog_pos[0] < log6_pos[1] - 10
-                     and frog_pos[0] > log6_pos[0] - 35) or
+                     and frog_pos[0] > log6_pos[0] - 45) or
                     (frog_pos[0] < log6_pos[3] - 10
-                     and frog_pos[0] > log6_pos[2]- 35)):
+                     and frog_pos[0] > log6_pos[2] - 45)):
                 print("\033[H\033[2J")
                 print("You lose the game! Get into the river!\n")
                 running = False
@@ -350,9 +361,9 @@ def check_status(canvas, log1, log2, log3, log4, log5, log6, log7, log8, log9,
                 break
         elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 7 - 5):
             if not ((frog_pos[0] < log7_pos[1] - 10
-                     and frog_pos[0] > log7_pos[0] - 35) or
+                     and frog_pos[0] > log7_pos[0] - 45) or
                     (frog_pos[0] < log7_pos[3] - 10
-                     and frog_pos[0] > log7_pos[2]- 35)):
+                     and frog_pos[0] > log7_pos[2] - 45)):
                 print("\033[H\033[2J")
                 print("You lose the game! Get into the river!\n")
                 running = False
@@ -360,9 +371,9 @@ def check_status(canvas, log1, log2, log3, log4, log5, log6, log7, log8, log9,
                 break
         elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 8 - 5):
             if not ((frog_pos[0] < log8_pos[1] - 10
-                     and frog_pos[0] > log8_pos[0] - 35) or
+                     and frog_pos[0] > log8_pos[0] - 45) or
                     (frog_pos[0] < log8_pos[3] - 10
-                     and frog_pos[0] > log8_pos[2]- 35)):
+                     and frog_pos[0] > log8_pos[2] - 45)):
                 print("\033[H\033[2J")
                 print("You lose the game! Get into the river!\n")
                 running = False
@@ -370,20 +381,23 @@ def check_status(canvas, log1, log2, log3, log4, log5, log6, log7, log8, log9,
                 break
         elif (frog_pos[1] == (LOG_BLANK + LOG_WIDTH) * 9 - 5):
             if not ((frog_pos[0] < log9_pos[1] - 10
-                     and frog_pos[0] > log9_pos[0] - 35) or
+                     and frog_pos[0] > log9_pos[0] - 45) or
                     (frog_pos[0] < log9_pos[3] - 10
-                     and frog_pos[0] > log9_pos[2]- 35)):
+                     and frog_pos[0] > log9_pos[2] - 45)):
                 print("\033[H\033[2J")
                 print("You lose the game! Get into the river!\n")
                 running = False
                 end = 2
                 break
-        time.sleep(0.005)
+        time.sleep(0.0005)
 
 
 create_thread(
     check_status,
     (canvas, log1, log2, log3, log4, log5, log6, log7, log8, log9, frog))
+
+s = tkinter.Scale(t, label='Adjust The Speed', from_=1, to=10, orient=tkinter.HORIZONTAL, length=SCREEN_LENGTH-5, showvalue=0,tickinterval=1, resolution=0.01)
+s.pack()
 
 log1.draw()
 log2.draw()
@@ -396,16 +410,21 @@ log8.draw()
 log9.draw()
 frog.draw()
 while running:
+    hardness = s.get()
     t.update_idletasks()
     t.update()
     time.sleep(0.005)
 
 if (end == 1):
-    t.title("You win! Press ESC / click the X of window / wait 3 seconds to close the window.\n")
+    t.title(
+        "You win! Wait 5 seconds to close the window.\n"
+    )
 elif (end == 2):
-    t.title("You lose! Press ESC / click the X of window / wait 3 seconds to close the window.\n")
+    t.title(
+        "You lose! Wait 5 seconds to close the window.\n"
+    )
 t.update_idletasks()
 t.update()
-time.sleep(3)
+time.sleep(5)
 t.destroy()
 t.mainloop()

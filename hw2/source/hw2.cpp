@@ -13,8 +13,8 @@
 #define COLUMN 50
 #define TIME 20000
 #define LOGLEN 20
-#define MODE1 // One thread used to update the screen
-#define MODE2x  // Many threads used to update the screen
+#define MODE1  // One thread used to update the screen
+#define MODE2x // Many threads used to update the screen
 
 struct Node
 {
@@ -80,14 +80,16 @@ void *check_status(void *)
 			if (dir == 'a' || dir == 'A')
 			{
 				pthread_mutex_lock(&frog_mutex);
-				frog.y--;
+				if (!(frog.x == ROW && frog.y == 0))
+					frog.y--;
 				pthread_mutex_unlock(&frog_mutex);
 			}
 
 			if (dir == 'd' || dir == 'D')
 			{
 				pthread_mutex_lock(&frog_mutex);
-				frog.y++;
+				if (!(frog.x == ROW && frog.y == COLUMN - 2))
+					frog.y++;
 				pthread_mutex_unlock(&frog_mutex);
 			}
 

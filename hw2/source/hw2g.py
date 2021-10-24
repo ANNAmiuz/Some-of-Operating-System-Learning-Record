@@ -9,7 +9,7 @@ import threading
 
 FROG_SIZE = 60
 LENGTH_LOWER = 150
-LENGTH_UPPER = 230
+LENGTH_UPPER = 300
 OFFSET_UPPER = 200
 OFFSET_LOWER = 100
 LOG_BLANK = 50
@@ -166,7 +166,8 @@ class Log:
         self.pos1 = self.canvas.coords(self.id1)
         self.pos2 = self.canvas.coords(self.id2)
         # pos[1] top pos[3] bottom pos[0] left pos[2] right
-        if self.pos1[0] >= self.canvas_width:
+        #if self.pos1[0] >= self.canvas_width:
+        if self.pos1[2] >= self.canvas_width + LENGTH_UPPER:
             #self.canvas.move(self.id1, -self.canvas_width - self.length1, 0)
             self.length1 = random.randint(LENGTH_LOWER, LENGTH_UPPER)
             self.id1 = canvas.create_rectangle(0,
@@ -175,7 +176,8 @@ class Log:
                                            LOG_WIDTH,
                                            fill=self.color)
             self.canvas.move(self.id1, - self.length1, self.height)
-        elif self.pos1[2] <= 0:
+        #elif self.pos1[2] <= 0:
+        elif self.pos1[0] <= -LENGTH_UPPER:
             #self.canvas.move(self.id1, self.canvas_width + self.length1, 0)
             self.length1 = random.randint(LENGTH_LOWER, LENGTH_UPPER)
             self.id1 = canvas.create_rectangle(0,
@@ -184,7 +186,8 @@ class Log:
                                            LOG_WIDTH,
                                            fill=self.color)
             self.canvas.move(self.id1, self.canvas_width , self.height)
-        if self.pos2[0] >= self.canvas_width:
+        #if self.pos2[0] >= self.canvas_width:
+        if self.pos2[2] >= self.canvas_width + LENGTH_UPPER:
             #self.canvas.move(self.id2, -self.canvas_width - self.length2, 0)
             self.length2 = random.randint(LENGTH_LOWER, LENGTH_UPPER)
             self.id2 = canvas.create_rectangle(0,
@@ -193,7 +196,8 @@ class Log:
                                            LOG_WIDTH,
                                            fill=self.color)
             self.canvas.move(self.id2, - self.length2, self.height)
-        elif self.pos2[2] <= 0:
+        #elif self.pos2[2] <= 0:
+        elif self.pos2[0] <= -LENGTH_UPPER:
             #self.canvas.move(self.id2, self.canvas_width + self.length2, 0)
             self.length2 = random.randint(LENGTH_LOWER, LENGTH_UPPER)
             self.id2 = canvas.create_rectangle(0,

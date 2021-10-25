@@ -124,7 +124,7 @@ void *check_status(void *)
 			end = 3;
 			pthread_exit(NULL);
 		}
-		usleep(TIME / 4);
+		usleep(TIME);
 	}
 	pthread_exit(NULL);
 }
@@ -200,14 +200,21 @@ void *logs_move(void *)
 {
 	int i, j, p1, p2;
 	int left[ROW - 1];
+	static int init = 0;
+
 	// initialize the position of all logs （left end point)
-	for (i = 0; i <= ROW; ++i)
+	if (init == 0)
 	{
-		left[i] = rand() % (COLUMN + 1);
+		for (i = 0; i <= ROW; ++i)
+		{
+			left[i] = rand() % (COLUMN + 1);
+		}
+		init = 1;
 	}
 	while (!end)
 	{
 		/*  Move the logs  */
+		pthread_mutex_lock(&frog_mutex);
 		for (i = 1; i < ROW; ++i)
 		{
 			for (j = 0; j < COLUMN - 1; ++j)
@@ -250,7 +257,7 @@ void *logs_move(void *)
 					left[i] = 0;
 			}
 		}
-
+		pthread_mutex_unlock(&frog_mutex);
 		for (j = 0; j < COLUMN - 1; ++j)
 			map[ROW][j] = map[0][j] = '|';
 
@@ -258,7 +265,6 @@ void *logs_move(void *)
 			map[0][j] = map[0][j] = '|';
 
 		pthread_mutex_lock(&frog_mutex);
-		map[frog.x][frog.y] = '0';
 		if (frog.x != 0 && frog.x != ROW)
 		{
 			if (frog.x % 2)
@@ -266,6 +272,7 @@ void *logs_move(void *)
 			else
 				frog.y++;
 		}
+		map[frog.x][frog.y] = '0';
 		pthread_mutex_unlock(&frog_mutex);
 
 		/*  Sleep before the next loop  */
@@ -300,7 +307,7 @@ int main(int argc, char *argv[])
 		puts(map[i]);
 
 	// Mutex initialization
-	//pthread_mutex_init(&end_mutex, NULL);
+	// pthread_mutex_init(&end_mutex, NULL);
 	pthread_mutex_init(&frog_mutex, NULL);
 #ifdef MODE2
 	pthread_mutex_init(&clear_mutex, NULL);
@@ -335,7 +342,7 @@ int main(int argc, char *argv[])
 	pthread_join(threads[4], NULL);
 #endif
 
-	//pthread_mutex_destroy(&end_mutex);
+	// pthread_mutex_destroy(&end_mutex);
 	pthread_mutex_destroy(&frog_mutex);
 #ifdef MODE2
 	pthread_mutex_destroy(&clear_mutex);

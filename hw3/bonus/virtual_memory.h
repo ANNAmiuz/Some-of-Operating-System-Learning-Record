@@ -27,9 +27,9 @@ __device__ void vm_init(VirtualMemory *vm, uchar *buffer, uchar *storage,
                         int PAGESIZE, int INVERT_PAGE_TABLE_SIZE,
                         int PHYSICAL_MEM_SIZE, int STORAGE_SIZE,
                         int PAGE_ENTRIES);
-__device__ uchar vm_read(VirtualMemory *vm, u32 , int pid);
-__device__ void vm_write(VirtualMemory *vm, u32 addr, uchar value, int pid);
+__device__ uchar vm_read(VirtualMemory *vm, u32);
+__device__ void vm_write(VirtualMemory *vm, u32 addr, uchar value);
 __device__ void vm_snapshot(VirtualMemory *vm, uchar *results, int offset,
-                            int input_size, int pid);
+                            int input_size);
 
 #endif

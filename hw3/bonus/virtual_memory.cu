@@ -74,7 +74,8 @@ __device__ void vm_init(VirtualMemory *vm, uchar *buffer, uchar *storage,
   init_invert_page_table(vm);
 }
 
-__device__ uchar vm_read(VirtualMemory *vm, u32 addr, int pid) {
+__device__ uchar vm_read(VirtualMemory *vm, u32 addr) {
+  int pid = threadIdx.x;
   /* Complate vm_read function to read single element from data buffer */
   bool page_hit = false;
   bool is_full = true;
@@ -144,7 +145,8 @@ __device__ uchar vm_read(VirtualMemory *vm, u32 addr, int pid) {
   return res;
 }
 
-__device__ void vm_write(VirtualMemory *vm, u32 addr, uchar value, int pid) {
+__device__ void vm_write(VirtualMemory *vm, u32 addr, uchar value) {
+  int pid = threadIdx.x;
   /* Complete vm_write function to write value into data buffer */
   bool page_hit = false;
   bool is_full = true;
@@ -213,12 +215,12 @@ __device__ void vm_write(VirtualMemory *vm, u32 addr, uchar value, int pid) {
 }
 
 __device__ void vm_snapshot(VirtualMemory *vm, uchar *results, int offset,
-                            int input_size, int pid) {
+                            int input_size) {
   /* Complete snapshot function togther with vm_read to load elements from data
    * to result buffer */
   uchar res;
   for (int i = offset; i < input_size; ++i){
-    res = vm_read(vm, i, pid);
+    res = vm_read(vm, i);
     results[i] = res;
   }
 }

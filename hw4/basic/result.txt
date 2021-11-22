@@ -1,0 +1,33 @@
+== sort by modify time == 
+t.txt
+b.txt
+== sort by file size == 
+t.txt 32
+b.txt 32
+== sort by file size == 
+t.txt 32
+b.txt 12
+== sort by modify time == 
+b.txt
+t.txt
+== sort by file size == 
+b.txt 12
+== sort by file size == 
+*ABCDEFGHIJKLMNOPQR 33
+)ABCDEFGHIJKLMNOPQR 32
+(ABCDEFGHIJKLMNOPQR 31
+'ABCDEFGHIJKLMNOPQR 30
+&ABCDEFGHIJKLMNOPQR 29
+%ABCDEFGHIJKLMNOPQR 28
+$ABCDEFGHIJKLMNOPQR 27
+#ABCDEFGHIJKLMNOPQR 26
+"ABCDEFGHIJKLMNOPQR 25
+!ABCDEFGHIJKLMNOPQR 24
+b.txt 12
+== sort by modify time == 
+*ABCDEFGHIJKLMNOPQR
+)ABCDEFGHIJKLMNOPQR
+(ABCDEFGHIJKLMNOPQR
+'ABCDEFGHIJKLMNOPQR
+&ABCDEFGHIJKLMNOPQR
+b.txt

@@ -34,7 +34,7 @@ MODULE_LICENSE("GPL");
 
 #define IRQ_NUM 1
 
-static int my_count = 0;
+//static int my_count = 0;
 
 void *dma_buf;
 static int dev_major;
@@ -297,8 +297,8 @@ static void drv_arithmetic_routine(struct work_struct *ws)
 /* BONUS: IRQ_HANDLER */
 irqreturn_t handler(int irq_num, void *dev)
 {
-	++my_count;
-	// myouti(myini(DMACOUNTADDR) + 1, DMACOUNTADDR);
+	// ++my_count;
+	myouti(myini(DMACOUNTADDR) + 1, DMACOUNTADDR);
 	return IRQ_HANDLED;
 }
 
@@ -334,16 +334,15 @@ static int __init init_modules(void)
 		return ret;
 	}
 
+	/* BONUS: INIT IRQ, IRQ_NUM = 1 (PAGE 23) */
+	printk("%s:%s(): request_irq %d returns %d\n", PREFIX_TITLE, __func__, IRQ_NUM, request_irq(IRQ_NUM, (irq_handler_t)handler, IRQF_SHARED, "OS_ASS5 DEVICE", (void *)dev_cdevp));
+
 	/* Allocate DMA buffer */
 	dma_buf = kzalloc(DMA_BUFSIZE, GFP_KERNEL); // simulate register and memory on device, kmalloc a dma buffer
 	printk("%s:%s(): allocate dma buffer\n", PREFIX_TITLE, __func__);
 
 	/* Allocate work routine */
 	work_routine = kmalloc(sizeof(typeof(*work_routine)), GFP_KERNEL);
-
-	/* BONUS: INIT IRQ, IRQ_NUM = 1 (PAGE 23) */
-	myouti(1, DMACOUNTADDR);
-	printk("%s:%s(): request_irq %d returns %d\n", PREFIX_TITLE, __func__, IRQ_NUM, request_irq(IRQ_NUM, (irq_handler_t)handler, IRQF_SHARED, "OS_ASS5 DEVICE", (void *)dev_cdevp));
 
 	return 0;
 }
@@ -367,7 +366,7 @@ static void __exit exit_modules(void)
 
 	/* BONUS : Free irq */
 	free_irq(IRQ_NUM, (void *)dev_cdevp);
-	printk("%s:%s(): interrupt count = %d\n", PREFIX_TITLE, __func__, my_count);
+	printk("%s:%s(): interrupt count = %d\n", PREFIX_TITLE, __func__, myini(DMACOUNTADDR));
 
 	printk("%s:%s():..............End..............\n", PREFIX_TITLE, __func__);
 }

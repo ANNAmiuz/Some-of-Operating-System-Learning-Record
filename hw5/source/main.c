@@ -172,12 +172,12 @@ static ssize_t drv_write(struct file *filp, const char __user *buffer, size_t ss
 	/* INIIALIZE WORK */
 	INIT_WORK(work_routine, drv_arithmetic_routine);
 	isBlocking = myini(DMABLOCKADDR);
-	printk("%s,%s(): queue work\n", PREFIX_TITLE, __func__);
+	printk("%s:%s(): queue work\n", PREFIX_TITLE, __func__);
 
 	// Decide io mode
 	if (isBlocking == 0)
 	{
-		// printk("%s,%s(): queue work\n",PREFIX_TITLE, __func__);
+		// printk("%s:%s(): queue work\n",PREFIX_TITLE, __func__);
 		// printk("%s:%s(): non-block\n", PREFIX_TITLE, __func__);
 		schedule_work(work_routine);
 	}
@@ -204,41 +204,41 @@ static long drv_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	case HW5_IOCSETSTUID:
 		myouti(cur_arg, DMASTUIDADDR);
 		res = myini(DMASTUIDADDR);
-		printk("%s,%s(): My STUID is = %d\n", PREFIX_TITLE, __func__, res);
+		printk("%s:%s(): My STUID is = %d\n", PREFIX_TITLE, __func__, res);
 		break;
 
 	case HW5_IOCSETRWOK:
 		myouti(cur_arg, DMARWOKADDR);
 		res = myini(DMARWOKADDR);
 		if (res == 1)
-			printk("%s,%s(): RW OK\n", PREFIX_TITLE, __func__);
+			printk("%s:%s(): RW OK\n", PREFIX_TITLE, __func__);
 		break;
 
 	case HW5_IOCSETIOCOK:
 		myouti(cur_arg, DMAIOCOKADDR);
 		res = myini(DMAIOCOKADDR);
 		if (res == 1)
-			printk("%s,%s(): IOC OK\n", PREFIX_TITLE, __func__);
+			printk("%s:%s(): IOC OK\n", PREFIX_TITLE, __func__);
 		break;
 
 	case HW5_IOCSETIRQOK:
 		myouti(cur_arg, DMAIRQOKADDR);
 		res = myini(DMAIRQOKADDR);
 		if (res == 1)
-			printk("%s,%s(): IRQ OK\n", PREFIX_TITLE, __func__);
+			printk("%s:%s(): IRQ OK\n", PREFIX_TITLE, __func__);
 		break;
 
 	case HW5_IOCSETBLOCK:
 		myouti(cur_arg, DMABLOCKADDR);
 		res = myini(DMABLOCKADDR);
 		if (res == 1)
-			printk("%s,%s(): Blocking IO\n", PREFIX_TITLE, __func__);
+			printk("%s:%s(): Blocking IO\n", PREFIX_TITLE, __func__);
 		else if (res == 0)
-			printk("%s,%s():  Non-Blocking IO\n", PREFIX_TITLE, __func__);
+			printk("%s:%s(): Non-Blocking IO\n", PREFIX_TITLE, __func__);
 		break;
 
 	case HW5_IOCWAITREADABLE:
-		printk("%s,%s(): wait readable 1\n", PREFIX_TITLE, __func__);
+		printk("%s:%s(): wait readable 1\n", PREFIX_TITLE, __func__);
 		while (myini(DMAREADABLEADDR) == 0) msleep(314);
 		res = myini(DMAREADABLEADDR);
 		put_user(res, (int *)arg);
@@ -290,7 +290,7 @@ static void drv_arithmetic_routine(struct work_struct *ws)
 	isBlocking = myini(DMABLOCKADDR);
 	if (isBlocking == 0)
 		myouti(1, DMAREADABLEADDR);
-	printk("%s,%s(): %d %c %d = %d\n", PREFIX_TITLE, __func__, myini(DMAOPERANDBADDR), myinc(DMAOPCODEADDR), myins(DMAOPERANDCADDR), myini(DMAANSADDR));
+	printk("%s:%s(): %d %c %d = %d\n", PREFIX_TITLE, __func__, myini(DMAOPERANDBADDR), myinc(DMAOPCODEADDR), myins(DMAOPERANDCADDR), myini(DMAANSADDR));
 	return;
 }
 
@@ -351,6 +351,10 @@ static int __init init_modules(void)
 static void __exit exit_modules(void)
 {
 	dev_t dev;
+	/* BONUS : Free irq */
+	free_irq(IRQ_NUM, (void *)dev_cdevp);
+	printk("%s:%s(): interrupt count = %d\n", PREFIX_TITLE, __func__, myini(DMACOUNTADDR));
+
 	/* Free DMA buffer when exit modules */
 	kfree(dma_buf);
 	printk("%s:%s(): free dma buffer\n", PREFIX_TITLE, __func__);
@@ -363,10 +367,6 @@ static void __exit exit_modules(void)
 
 	/* Free work routine */
 	kfree(work_routine);
-
-	/* BONUS : Free irq */
-	free_irq(IRQ_NUM, (void *)dev_cdevp);
-	printk("%s:%s(): interrupt count = %d\n", PREFIX_TITLE, __func__, myini(DMACOUNTADDR));
 
 	printk("%s:%s():..............End..............\n", PREFIX_TITLE, __func__);
 }
